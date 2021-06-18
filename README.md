@@ -13,7 +13,7 @@ The Software runs on any <i>Linux machine</i> with the programs <a href="#prereq
 <p>3. <a href="http://www.backbox.org/">BackBox Linux</a></p>
 
 
-###Prerequisites
+### Prerequisites
 The Program requires the following to run properly:<br>
 The following dependencies can be installed using the <i>Debian package installer</i> command on Debian based systems using "apt-get install program" or otherwise downloaded
 and installed manually
@@ -26,7 +26,7 @@ and installed manually
 <p>7. <a href="http://www.metasploit.com/">Metasploit Framework</a> <i>(Optional)</i></li>
 <hr>
 
-###Features
+### Features
 <hr>
 <i>Ghost Phisher</i> currently supports the following features:
 
@@ -43,7 +43,7 @@ and installed manually
 
 <hr>
 
-##Installation
+## Installation
 Installation on Debian Package supported systems:
 <br><hr>
 <code>root@host:~# dpkg -i ghost-phisher_1.5_all.deb</code>
@@ -55,7 +55,7 @@ The <i>source code</i> for the program can be fetched using the following comman
 <hr>
 
 
-###Other Projects:
+### Other Projects:
 
 https://github.com/savio-code/fern-wifi-cracker
 
