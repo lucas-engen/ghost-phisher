@@ -1,8 +1,8 @@
-import settings
-import whats_new_ui
+from .settings import *
+from .whats_new_ui import *
 
 from core import update
-from PyQt4 import QtGui,QtCore
+from PyQt5 import QtGui,QtCore,QtWidgets
 
 whats_new_html = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -33,7 +33,7 @@ whats_new_html = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//E
 
 
 
-class whats_new_window(QtGui.QDialog,whats_new_ui.Ui_Dialog):
+class whats_new_window(QtWidgets.QDialog, Ui_Dialog):
     def __init__(self):
         QtGui.QDialog.__init__(self)
 

@@ -2,7 +2,7 @@
 #           GHOST PHISHER FONT SETTINGS               #
 #######################################################
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 
 try:
@@ -13,7 +13,7 @@ except AttributeError:
 import os
 cwd = os.getcwd()
 
-from settings import *
+from .settings import *
 
 settings_object = Ghost_settings()
 
@@ -83,7 +83,7 @@ class Ui_font_settings(object):
         self.label_2.setText(QtGui.QApplication.translate("font_settings", "Font:", None, QtGui.QApplication.UnicodeUTF8))
 
 
-class font_settings(QtGui.QDialog,Ui_font_settings):
+class font_settings(QtWidgets.QDialog,Ui_font_settings):
     def __init__(self):
         QtGui.QDialog.__init__(self)
         self.setupUi(self)

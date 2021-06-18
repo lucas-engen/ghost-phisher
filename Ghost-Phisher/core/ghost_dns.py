@@ -28,12 +28,11 @@
 import re
 import os
 import socket
-import thread
+import threading
 
 from scapy.all import *
-from PyQt4 import QtCore
-
-
+from scapy import *
+from PyQt5 import QtCore
 
 class Ghost_DNS_Server(QtCore.QThread):
     def __init__(self):
@@ -61,8 +60,8 @@ class Ghost_DNS_Server(QtCore.QThread):
         Ethernet_packet = Ether(dst=self._src_mac, src=self._dst_mac, type=0x800)
         IP_packet = IP(proto='udp',src=self._dst_ip, dst=self._src_ip, options='')
         UDP_packet = UDP( sport='domain', dport=self._dst_port)
-        DNS_packet = DNS(id=self._transaction_id, qr=1L, opcode='QUERY', aa=1L, tc=0L, rd=1L, ra=1L, z=0L,
-        rcode=0L, qdcount=1, ancount=1, nscount=0, arcount=0, qd=DNSQR(qname=self._query_string,
+        DNS_packet = DNS(id=self._transaction_id, qr=1, opcode='QUERY', aa=1, tc=0, rd=1, ra=1, z=0,
+        rcode=0, qdcount=1, ancount=1, nscount=0, arcount=0, qd=DNSQR(qname=self._query_string,
         qtype='A', qclass='IN'), an=DNSRR(rrname=self._query_string, type='A', rclass='IN', ttl=3600,
         rdata=target_address),ns='None', ar='None')
         packet = Ethernet_packet/IP_packet/UDP_packet/DNS_packet

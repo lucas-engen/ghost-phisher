@@ -3,8 +3,7 @@
 import os                   # For operating system related call e.g [os.listdir()]
 import sys
 
-
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 # Set Working directory'
 if 'core' not in os.listdir(os.getcwd()):
@@ -15,7 +14,7 @@ if 'core' not in os.listdir(os.getcwd()):
 from gui import *
 
 if __name__ == '__main__':
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     run = ghost_phisher.Ghost_phisher()
     run.show()
     app.exec_()

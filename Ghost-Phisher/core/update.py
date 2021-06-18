@@ -1,16 +1,16 @@
 import re
 import os
+from threading import Thread
 import time
 import shutil
-import thread
-import urllib2
+import urllib
 import subprocess
 
 from gui import settings
 from gui import update_ui
-from PyQt4 import QtGui,QtCore
+from PyQt5 import QtGui,QtCore,QtWidgets
 
-class update_class(QtGui.QDialog,update_ui.Ui_Dialog):
+class update_class(QtWidgets.QDialog,update_ui.Ui_Dialog):
     def __init__(self):
         QtGui.QDialog.__init__(self)
         self.setupUi(self)
@@ -65,7 +65,8 @@ class update_class(QtGui.QDialog,update_ui.Ui_Dialog):
 
     def update_installer(self):
         self.label_2.setText('<font color=green>Downloading...</font>')
-        thread.start_new_thread(self.update_launcher,())
+        update = Thread(self.update_launcher())
+        update.start()
 
 
     def update_launcher(self):
@@ -82,7 +83,7 @@ class update_class(QtGui.QDialog,update_ui.Ui_Dialog):
         svn_path = 'https://github.com/savio-code/ghost-phisher/trunk/Ghost-Phisher/'
 
         try:
-            online_response_check = urllib2.urlopen('https://raw.githubusercontent.com/savio-code/ghost-phisher/master/Ghost-Phisher/UPDATE')
+            online_response_check = urllib.urlopen('https://raw.githubusercontent.com/savio-code/ghost-phisher/master/Ghost-Phisher/UPDATE')
             online_response = online_response_check.read()
 
             online_files = re.compile('total_files = \d+',re.IGNORECASE)
@@ -97,7 +98,7 @@ class update_class(QtGui.QDialog,update_ui.Ui_Dialog):
             self.svn_access = subprocess.Popen('cd /tmp/ \n svn checkout ' + svn_path,\
                     shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,stdin=subprocess.PIPE)
             svn_update = self.svn_access.stdout
-            thread.start_new_thread(self.update_error,())
+            Thread(self.update_error()).start()
 
             while True:
                 response = svn_update.readline()
@@ -117,13 +118,13 @@ class update_class(QtGui.QDialog,update_ui.Ui_Dialog):
                             shutil.rmtree(os.getcwd() + os.sep + old_directory)
 
                     for update_file in os.listdir(update_directory):        # Copy New update files to working directory
-                    	filepath = os.getcwd() + os.sep + update_file
+                        filepath = os.getcwd() + os.sep + update_file
                         if os.path.isfile(update_directory + update_file):
                             shutil.copyfile(update_directory + update_file,filepath)
                         else:
                             shutil.copytree(update_directory + update_file,filepath)
 
-                        os.chmod(filepath,0777)
+                        os.chmod(filepath, 777)
 
                     time.sleep(5)
 
@@ -137,7 +138,7 @@ class update_class(QtGui.QDialog,update_ui.Ui_Dialog):
                     self.emit(QtCore.SIGNAL("download failed"))
                     break
 
-        except(urllib2.URLError,urllib2.HTTPError):
+        except (urllib.URLError, urllib.HTTPError):
             self.emit(QtCore.SIGNAL("download failed"))
 
 
@@ -147,7 +148,7 @@ class update_class(QtGui.QDialog,update_ui.Ui_Dialog):
     def update_initializtion_check(self):
         while True:
             try:
-                online_response_thread = urllib2.urlopen('https://raw.githubusercontent.com/savio-code/ghost-phisher/master/Ghost-Phisher/UPDATE')
+                online_response_thread = urllib.urlopen('https://raw.githubusercontent.com/savio-code/ghost-phisher/master/Ghost-Phisher/UPDATE')
                 online_response = online_response_thread.read()
 
                 online_version = re.compile('version\s+=\s+(\d*?\.\d*)',re.IGNORECASE)

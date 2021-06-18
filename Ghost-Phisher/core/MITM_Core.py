@@ -28,7 +28,6 @@
 
 import os
 import time
-import thread
 import threading
 
 from scapy.all import *
@@ -134,7 +133,7 @@ class Fern_MITM_Class:
             '''Receives ARP is-at from Hosts on
                 the subnet'''
             packet_count = 1
-            thread.start_new_thread(self._network_Hosts_Probe,())
+            Thread(self._network_Hosts_Probe()).start()
             sniff(filter = "arp",prn = self._get_Network_Hosts_Worker,store = 0)
 
 
@@ -171,9 +170,9 @@ class Fern_MITM_Class:
             self._local_mac = self.get_Mac_Address(self.interface_card).strip()
             self._local_IP_Address = self.get_IP_Adddress()
             self._set_Gateway_MAC()
-            thread.start_new_thread(self._get_Network_Hosts,())                 # Get all network hosts on subnet
+            Thread(self._get_Network_Hosts,()).start()                 # Get all network hosts on subnet
             if(route_enabled):
-                thread.start_new_thread(self._redirect_network_traffic,())      # Redirect traffic to default gateway
+                Thread(self._redirect_network_traffic,()).start()      # Redirect traffic to default gateway
             self._poison_arp_cache()                                            # Poison the cache of all network hosts
 
 
@@ -189,9 +188,9 @@ class Fern_MITM_Class:
 
         def get_IP_Adddress(self):
             import re
-            import commands
+            import subprocess
             regex = "inet addr:((\d+.){3}\d+)"
-            sys_out = commands.getstatusoutput("ifconfig " + self.interface_card)[1]
+            sys_out = subprocess.getstatusoutput("ifconfig " + self.interface_card)[1]
             result = re.findall(regex,sys_out)
             if(result):
                 return(result[0][0])

@@ -1,7 +1,6 @@
 import os
 import sqlite3
 
-
 class Ghost_settings(object):
     def __init__(self):
         self.cwd = os.getcwd()
@@ -62,8 +61,3 @@ class Ghost_settings(object):
             to settings file
         '''
         self.cursor_object.close()
-
-
-
-
-

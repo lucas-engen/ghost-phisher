@@ -1,7 +1,7 @@
 import re
 import os
 import time
-from PyQt4 import QtCore
+from PyQt5 import QtCore
 from core.bottle import (Bottle,response,request,static_file,debug,redirect,run)
 
 ghost_trap = Bottle()

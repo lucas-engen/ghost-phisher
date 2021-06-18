@@ -3,9 +3,9 @@
 #######################################################
 import os
 
-import settings
+from .settings import *
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 cwd = os.getcwd()
 
@@ -69,13 +69,13 @@ class Ui_tip(object):
 
 
 
-class tip_settings(QtGui.QDialog,Ui_tip):
+class tip_settings(QtWidgets.QDialog,Ui_tip):
     def __init__(self):
         QtGui.QDialog.__init__(self)
         self.setupUi(self)
         self.retranslateUi(self)
 
-        self.settings_object = settings.Ghost_settings()
+        self.settings_object = Ghost_settings()
 
         self.connect(self.checkBox,QtCore.SIGNAL("clicked()"),self.set_tip)
 

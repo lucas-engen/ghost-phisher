@@ -28,12 +28,12 @@
 import re
 import os
 import time
-import thread
+import threading
 import sqlite3
 import logging
 import threading
 
-from PyQt4 import QtCore
+from PyQt5 import QtCore
 
 from scapy.all import *
 
@@ -202,7 +202,7 @@ class Cookie_Hijack_Core(QtCore.QThread):
                     if(self.control):
                         self.emit(QtCore.SIGNAL("New Cookie Captured"))     # Notification Signal for GUI instance
 
-        except AttributeError,message:
+        except AttributeError as message:
             pass
 
         finally:

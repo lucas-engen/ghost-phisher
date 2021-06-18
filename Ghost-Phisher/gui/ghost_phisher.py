@@ -2,34 +2,34 @@ import os                   # For operating system related call e.g [os.listdir(
 import re                   # String matching
 import sys                  # For validating execution of GUI components e.g [QApplication(sys.argv)]
 import time                 # For displaying time of executed attacks
-import thread               # For running services in a sub-processed loop(threads)
+import threading               # For running services in a sub-processed loop(threads)
 import socket               # For network based servcies e.g DNS
 import signal               # Sending SIGINT signal to processes
-import urllib2              # For getting the source code of websites that user wants to clone
+import urllib              # For getting the source code of websites that user wants to clone
 import sqlite3              # For saving fetched credentials to database
 import shutil               # For file copy operations
-import commands             # For executing shell commands and getting system output e.g DHCP3
-import subprocess           # For reading live output from terminal processes
+import subprocess as commands # For reading live output from terminal processes and For executing shell commands and getting system output e.g DHCP3
 
-
-from settings import *
-from ghost_ui import *
+from .settings import *
+from .ghost_ui import *
 from core.http_core import *
 from core import variables
 from core.ghost_dns import *
 from core import ghost_trap_core
 from core import metasploit_payload
 from core.update import update_class
-from tip_settings import tip_settings
-from whats_new import whats_new_window
-from font_settings import font_settings
+from .tip_settings import tip_settings
+from .whats_new import whats_new_window
+from .font_settings import font_settings
 
-from PyQt4 import QtCore, QtGui
+#from PyQt5 import QtCore, QtGui, QtWidgets, QtOb
+from PyQt5 import *
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
 
 from core.MITM_Core import *
 from core.mozilla_cookie_core import *
 from core.cookie_hijacker_core import *
-
 
 cwd = os.getcwd()                                                        # This will be used as working directory after HTTP is launch
                                                                          # Thats because the HTTP server changes directory after launch
@@ -70,11 +70,14 @@ ghost_settings = Ghost_settings()                               # Ghost settings
 ghost_trap_http = ghost_trap_core.Ghost_Trap_http()             # Ghost Trap HTTP Class
 
 
-class Ghost_phisher(QtGui.QMainWindow,Ui_ghost_phisher):    # Main class for all GUI functional definitions
+class Ghost_phisher(QtWidgets.QMainWindow,Ui_ghost_phisher):    # Main class for all GUI functional definitions
     ''' Main Class for GUI'''
-    def __init__(self):
-        QtGui.QDialog.__init__(self)
 
+    signal = pyqtSignal()
+
+    def __init__(self):
+        QtWidgets.QDialog.__init__(self)
+    
         self.setupUi(self)
         self.retranslateUi(self)
         self.dns_stop.setEnabled(False)
@@ -119,8 +122,8 @@ class Ghost_phisher(QtGui.QMainWindow,Ui_ghost_phisher):    # Main class for all
         self.green_led = "%s/gui/images/green_led.png"%(cwd)
 
         # Thread execute Tip settings dialog after 5 seconds
-        thread.start_new_thread(self.run_whats_new_thread,())
-        thread.start_new_thread(self.run_tips_thread,())
+        threading.Thread(self.run_whats_new_thread(), group=None).start()
+        threading.Thread(self.run_tips_thread(), group=None).start()
 
         # Get data from database from initialization
         global previous_database_data
@@ -314,12 +317,12 @@ class Ghost_phisher(QtGui.QMainWindow,Ui_ghost_phisher):    # Main class for all
         self.mozilla_cookie_engine = Mozilla_Cookie_Core()      # Mozilla fierfox cookie engine
 
 
-        self.connect(self.refresh_button_3,QtCore.SIGNAL("clicked()"),self.refresh_interface)
-        self.connect(self.start_sniffing_button_3,QtCore.SIGNAL("clicked()"),self.start_Cookie_Attack)
-        self.connect(self.ethernet_mode_radio_2,QtCore.SIGNAL("clicked()"),self.set_attack_option)
-        self.connect(self.passive_mode_radio_2,QtCore.SIGNAL("clicked()"),self.set_attack_option)
-        self.connect(self.stop_sniffing_button_3,QtCore.SIGNAL("clicked()"),self.stop_Cookie_Attack)
-        self.connect(self.combo_interface_2,QtCore.SIGNAL("currentIndexChanged(QString)"),self.reset)
+        self.connect(self.refresh_button_3,QtCore.pyqtSignal("clicked()"),self.refresh_interface)
+        self.connect(self.start_sniffing_button_3,QtCore.pyqtSignal("clicked()"),self.start_Cookie_Attack)
+        self.connect(self.ethernet_mode_radio_2,QtCore.pyqtSignal("clicked()"),self.set_attack_option)
+        self.connect(self.passive_mode_radio_2,QtCore.pyqtSignal("clicked()"),self.set_attack_option)
+        self.connect(self.stop_sniffing_button_3,QtCore.pyqtSignal("clicked()"),self.stop_Cookie_Attack)
+        self.connect(self.combo_interface_2,QtCore.pyqtSignal("currentIndexChanged(QString)"),self.reset)
 
         self.connect_objects()
 
@@ -331,71 +334,71 @@ class Ghost_phisher(QtGui.QMainWindow,Ui_ghost_phisher):    # Main class for all
 
         self.refresh_interface_arp()
 
-        self.connect(self.refresh_button_4,QtCore.SIGNAL("clicked()"),self.refresh_interface_arp)
-        self.connect(self.start_arp_poison,QtCore.SIGNAL("clicked()"),self.start_arp_poison_attack)
-        self.connect(self.stop_arp_poison,QtCore.SIGNAL("clicked()"),self.stop_arp_poison_attack)
-        self.connect(self.combo_interface_3,QtCore.SIGNAL("currentIndexChanged(QString)"),self.interface_filter)
-        self.connect(self,QtCore.SIGNAL("New ARP Victim"),self.display_arp_victim_info)
+        self.connect(self.refresh_button_4,QtCore.pyqtSignal("clicked()"),self.refresh_interface_arp)
+        self.connect(self.start_arp_poison,QtCore.pyqtSignal("clicked()"),self.start_arp_poison_attack)
+        self.connect(self.stop_arp_poison,QtCore.pyqtSignal("clicked()"),self.stop_arp_poison_attack)
+        self.connect(self.combo_interface_3,QtCore.pyqtSignal("currentIndexChanged(QString)"),self.interface_filter)
+        self.connect(self,QtCore.pyqtSignal("New ARP Victim"),self.display_arp_victim_info)
 
         #####################################################################
         #
         # Connection to GUI object slots and Signals
         #
-        self.connect(self.card_interface_combo,QtCore.SIGNAL("currentIndexChanged(QString)"),self.update_dns_address)
-        self.connect(self.http_interface_combo,QtCore.SIGNAL("currentIndexChanged(QString)"),self.update_http_address)
-        self.connect(self.spawn_http_interface_combo,QtCore.SIGNAL("currentIndexChanged(QString)"),self.update_ghost_spawn_interfaces)
-        self.connect(self.resolveall_radio,QtCore.SIGNAL("clicked()"),self.update_selection)
-        self.connect(self.respond_domain_radio,QtCore.SIGNAL("clicked()"),self.update_selection)
-        self.connect(self.dns_stop,QtCore.SIGNAL("clicked()"),self.stop_dns)
-        self.connect(self.dns_start,QtCore.SIGNAL("clicked()"),self.launch_dns)
-        self.connect(self.dhcp_start,QtCore.SIGNAL("clicked()"),self.launch_dhcp)
-        self.connect(self,QtCore.SIGNAL("new dhcp connection"),self.display_leases_client)
-        self.connect(self.website_button,QtCore.SIGNAL("clicked()"),self.browse_webpage)
-        self.connect(self.emulate_website_radio,QtCore.SIGNAL("clicked()"),self.set_usable)
-        self.connect(self.select_website_radio,QtCore.SIGNAL("clicked()"),self.set_usable)
-        self.connect(self.http_stop,QtCore.SIGNAL("clicked()"),self.stop_http)
-        self.connect(self.http_start,QtCore.SIGNAL("clicked()"),self.launch_http_server)
-        self.connect(self.dhcp_stop,QtCore.SIGNAL("clicked()"),self.stop_dhcp)
-        self.connect(self.insert_button,QtCore.SIGNAL("clicked()"),self.insert_credential)
-        self.connect(self.delete_button,QtCore.SIGNAL("clicked()"),self.delete_credential)
-        self.connect(self.savechanges_button,QtCore.SIGNAL("clicked()"),self.save_changes)
-        self.connect(self.start_ip,QtCore.SIGNAL("textChanged(QString)"),self.determine_subnet)
-        self.connect(self.domain_add_button,QtCore.SIGNAL("clicked()"),self.ip_to_website)
-        self.connect(self.refresh_button,QtCore.SIGNAL("clicked()"),self.refresh_card)
-        self.connect(self.access_start,QtCore.SIGNAL("clicked()"),self.launch_Access_Point)
-        self.connect(self.comboBox,QtCore.SIGNAL("currentIndexChanged(QString)"),self.card_details)
-        self.connect(self.monitor_button,QtCore.SIGNAL("clicked()"),self.set_monitor)
-        self.connect(self,QtCore.SIGNAL("dns started"),self.dns_started)
-        self.connect(self,QtCore.SIGNAL("dns failed"),self.dns_failed)
-        self.connect(self,QtCore.SIGNAL("dns stopped"),self.stop_dns)
-        self.connect(self.ghost_dns,QtCore.SIGNAL("new client connection"),self.update_dns_connections)
-        self.connect(self,QtCore.SIGNAL("run tips"),self.run_tips)
-        self.connect(self,QtCore.SIGNAL("run whats new"),self.run_what_new)
-        self.connect(self,QtCore.SIGNAL("access point output"),self.update_access_output)
-        self.connect(self,QtCore.SIGNAL("access point error"),self.update_access_error)
-        self.connect(self,QtCore.SIGNAL("access point started"),self.access_point_started)
-        self.connect(self.access_stop,QtCore.SIGNAL("clicked()"),self.stop_access_point)
-        self.connect(self.rouge_radio,QtCore.SIGNAL("clicked()"),self.clear_key_area)
-        self.connect(self,QtCore.SIGNAL("triggered()"),QtCore.SLOT("close()"))
+        self.connect(self.card_interface_combo,QtCore.pyqtSignal("currentIndexChanged(QString)"),self.update_dns_address)
+        self.connect(self.http_interface_combo,QtCore.pyqtSignal("currentIndexChanged(QString)"),self.update_http_address)
+        self.connect(self.spawn_http_interface_combo,QtCore.pyqtSignal("currentIndexChanged(QString)"),self.update_ghost_spawn_interfaces)
+        self.connect(self.resolveall_radio,QtCore.pyqtSignal("clicked()"),self.update_selection)
+        self.connect(self.respond_domain_radio,QtCore.pyqtSignal("clicked()"),self.update_selection)
+        self.connect(self.dns_stop,QtCore.pyqtSignal("clicked()"),self.stop_dns)
+        self.connect(self.dns_start,QtCore.pyqtSignal("clicked()"),self.launch_dns)
+        self.connect(self.dhcp_start,QtCore.pyqtSignal("clicked()"),self.launch_dhcp)
+        self.connect(self,QtCore.pyqtSignal("new dhcp connection"),self.display_leases_client)
+        self.connect(self.website_button,QtCore.pyqtSignal("clicked()"),self.browse_webpage)
+        self.connect(self.emulate_website_radio,QtCore.pyqtSignal("clicked()"),self.set_usable)
+        self.connect(self.select_website_radio,QtCore.pyqtSignal("clicked()"),self.set_usable)
+        self.connect(self.http_stop,QtCore.pyqtSignal("clicked()"),self.stop_http)
+        self.connect(self.http_start,QtCore.pyqtSignal("clicked()"),self.launch_http_server)
+        self.connect(self.dhcp_stop,QtCore.pyqtSignal("clicked()"),self.stop_dhcp)
+        self.connect(self.insert_button,QtCore.pyqtSignal("clicked()"),self.insert_credential)
+        self.connect(self.delete_button,QtCore.pyqtSignal("clicked()"),self.delete_credential)
+        self.connect(self.savechanges_button,QtCore.pyqtSignal("clicked()"),self.save_changes)
+        self.connect(self.start_ip,QtCore.pyqtSignal("textChanged(QString)"),self.determine_subnet)
+        self.connect(self.domain_add_button,QtCore.pyqtSignal("clicked()"),self.ip_to_website)
+        self.connect(self.refresh_button,QtCore.pyqtSignal("clicked()"),self.refresh_card)
+        self.connect(self.access_start,QtCore.pyqtSignal("clicked()"),self.launch_Access_Point)
+        self.connect(self.comboBox,QtCore.pyqtSignal("currentIndexChanged(QString)"),self.card_details)
+        self.connect(self.monitor_button,QtCore.pyqtSignal("clicked()"),self.set_monitor)
+        self.connect(self,QtCore.pyqtSignal("dns started"),self.dns_started)
+        self.connect(self,QtCore.pyqtSignal("dns failed"),self.dns_failed)
+        self.connect(self,QtCore.pyqtSignal("dns stopped"),self.stop_dns)
+        self.connect(self.ghost_dns,QtCore.pyqtSignal("new client connection"),self.update_dns_connections)
+        self.connect(self,QtCore.pyqtSignal("run tips"),self.run_tips)
+        self.connect(self,QtCore.pyqtSignal("run whats new"),self.run_what_new)
+        self.connect(self,QtCore.pyqtSignal("access point output"),self.update_access_output)
+        self.connect(self,QtCore.pyqtSignal("access point error"),self.update_access_error)
+        self.connect(self,QtCore.pyqtSignal("access point started"),self.access_point_started)
+        self.connect(self.access_stop,QtCore.pyqtSignal("clicked()"),self.stop_access_point)
+        self.connect(self.rouge_radio,QtCore.pyqtSignal("clicked()"),self.clear_key_area)
+        self.connect(self,QtCore.pyqtSignal("triggered()"),QtCore.SLOT("close()"))
 
-        self.connect(self.ghost_vul_combo,QtCore.SIGNAL("clicked()"),self.vulnarabilty_page_choice)
-        self.connect(self.custom_vul_combo,QtCore.SIGNAL("clicked()"),self.vulnarabilty_page_choice)
-        self.connect(self.metasploit_payload_radio,QtCore.SIGNAL("clicked()"),self.metasploit_payload_choice)
-        self.connect(self.custom_payload_radio,QtCore.SIGNAL("clicked()"),self.custom_payload_choice)
-        self.connect(self.custom_page_button,QtCore.SIGNAL("clicked()"),self.browse_custom_webpage)
-        self.connect(self.windows_exec_button,QtCore.SIGNAL("clicked()"),self.custom_windows_executable_payload)
-        self.connect(self.linux_exec_button,QtCore.SIGNAL("clicked()"),self.custom_linux_executable_payload)
+        self.connect(self.ghost_vul_combo,QtCore.pyqtSignal("clicked()"),self.vulnarabilty_page_choice)
+        self.connect(self.custom_vul_combo,QtCore.pyqtSignal("clicked()"),self.vulnarabilty_page_choice)
+        self.connect(self.metasploit_payload_radio,QtCore.pyqtSignal("clicked()"),self.metasploit_payload_choice)
+        self.connect(self.custom_payload_radio,QtCore.pyqtSignal("clicked()"),self.custom_payload_choice)
+        self.connect(self.custom_page_button,QtCore.pyqtSignal("clicked()"),self.browse_custom_webpage)
+        self.connect(self.windows_exec_button,QtCore.pyqtSignal("clicked()"),self.custom_windows_executable_payload)
+        self.connect(self.linux_exec_button,QtCore.pyqtSignal("clicked()"),self.custom_linux_executable_payload)
 
-        self.connect(self.ghost_spawn_start,QtCore.SIGNAL("clicked()"),self.launch_ghost_trap)
-        self.connect(self.ghost_spawn_stop,QtCore.SIGNAL("clicked()"),self.ghost_trap_stop)
+        self.connect(self.ghost_spawn_start,QtCore.pyqtSignal("clicked()"),self.launch_ghost_trap)
+        self.connect(self.ghost_spawn_stop,QtCore.pyqtSignal("clicked()"),self.ghost_trap_stop)
 
-        self.connect(ghost_trap_http,QtCore.SIGNAL("got new connection"),self.display_new_connection)
-        self.connect(ghost_trap_http,QtCore.SIGNAL("new download"),self.new_download)
+        self.connect(ghost_trap_http,QtCore.pyqtSignal("got new connection"),self.display_new_connection)
+        self.connect(ghost_trap_http,QtCore.pyqtSignal("new download"),self.new_download)
 
-        self.connect(self.update_function,QtCore.SIGNAL("new update available"),self.update_window)
+        self.connect(self.update_function,QtCore.pyqtSignal("new update available"),self.update_window)
 
         # Start Update checker
-        thread.start_new_thread(self.update_function.update_initializtion_check,())
+        threading.Thread(self.update_function.update_initializtion_check,())
 
         self.display_ghost_version()        # Display Ghost Version number on mainwindow e.g V1.45
         self.centralize_window()
@@ -429,7 +432,7 @@ class Ghost_phisher(QtGui.QMainWindow,Ui_ghost_phisher):    # Main class for all
 
     def check_root_priviledges(self):
         if(os.getenv('LOGNAME','none').lower() != 'root'):
-            QtGui.QMessageBox.warning(self,"Insufficient Priviledge","Ghost Phisher requires root priviledges to function properly,\
+            QtWidgets.QMessageBox.warning(self,"Insufficient Priviledge","Ghost Phisher requires root priviledges to function properly,\
             please run as root")
             sys.exit(1)
 
@@ -452,12 +455,12 @@ class Ghost_phisher(QtGui.QMainWindow,Ui_ghost_phisher):    # Main class for all
             of tips dialog after 2 seconds
         '''
         time.sleep(2)
-        self.emit(QtCore.SIGNAL("run tips"))
+        self.signal.emit(QtCore.pyqtSignal("run tips"))
 
 
     def run_whats_new_thread(self):
         time.sleep(2)
-        self.emit(QtCore.SIGNAL("run whats new"))
+        self.signal.emit(QtCore.pyqtSignal("run whats new"))
 
 
     def run_tips(self):
@@ -568,24 +571,24 @@ class Ghost_phisher(QtGui.QMainWindow,Ui_ghost_phisher):    # Main class for all
             os.remove('/tmp/access_point_log')
 
         if access_name == '':
-            QtGui.QMessageBox.warning(self,"NULL Access Point Name","Please input a name you intend to name the access point e.g Rouge-WIFI")
+            QtWidgets.QMessageBox.warning(self,"NULL Access Point Name","Please input a name you intend to name the access point e.g Rouge-WIFI")
             access_point_control = 0
         elif access_point_ip.count('.') < 3:
             access_point_control = 0
-            QtGui.QMessageBox.warning(self,"Invalid IP address","Please input a valid IP address in the (Access Point Name:) section")
+            QtWidgets.QMessageBox.warning(self,"Invalid IP address","Please input a valid IP address in the (Access Point Name:) section")
         elif self.wpa_radio.isChecked():
             if encryption_key == '':
                 access_point_control = 0
-                QtGui.QMessageBox.warning(self,"NULL Encryption Key","Please input a key you intend to encrypt exchange information in on the Key text area e.g 1234567890")
+                QtWidgets.QMessageBox.warning(self,"NULL Encryption Key","Please input a key you intend to encrypt exchange information in on the Key text area e.g 1234567890")
         elif self.wep_radio.isChecked():
             if encryption_key == '':
                 access_point_control = 0
-                QtGui.QMessageBox.warning(self,"NULL Encryption Key","Please input a key you intend to encrypt exchange information in on the Key text area e.g 1234567890")
+                QtWidgets.QMessageBox.warning(self,"NULL Encryption Key","Please input a key you intend to encrypt exchange information in on the Key text area e.g 1234567890")
 
         if access_point_control != 0:
             self.access_textbrowser.append('<font color=green>Starting Fake Access Point...</font>')
-            thread.start_new_thread(self.rouge_launch,())
-            thread.start_new_thread(self.update_browser_thread,())
+            threading.Thread(self.rouge_launch,())
+            threading.Thread(self.update_browser_thread,())
 
 
     def clear_key_area(self):
@@ -647,7 +650,6 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
                                                (iterate,usable_interface_cards[iterate])
                                                )
 
-
         usable_interface_cards['at0']= ip_address_text
 
         access_interface = []
@@ -673,10 +675,6 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
         self.spawn_http_interface_combo.clear()
         self.spawn_http_interface_combo.addItems(interface_cards_httpa)
 
-
-
-
-
     def stop_access_point(self):
         global access_point_control
         access_point_control = 0
@@ -692,8 +690,6 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
         self.access_textbrowser.append('<font color=red>Access Point Stopped at: %s</font>'%(time.ctime()))
         self.access_start.setEnabled(True)
         self.access_stop.setEnabled(False)
-
-
 
     def rougue_launch_phase(self):
         global ip_address_text
@@ -711,10 +707,7 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
             time.sleep(3)
         commands.getstatusoutput('ifconfig at0 up')
         commands.getstatusoutput('ifconfig at0 %s netmask %s'%(ip_address_text,netmask))
-        self.emit(QtCore.SIGNAL("access point started"))
-
-
-
+        self.signal.emit(QtCore.pyqtSignal("access point started"))
 
     def rouge_launch(self):
         global essid
@@ -726,12 +719,12 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
         global access_point_error
 
 
-	essid = str(self.access_name_edit.text())
+        essid=str(self.access_name_edit.text())
         channel = str(self.channel_combo.currentText())
         ip_address_text = str(self.ip_address_label_2.text())
         key = str(self.lineEdit.text())
 
-        thread.start_new_thread(self.rougue_launch_phase,())
+        threading.Thread(self.rougue_launch_phase,()).start()
 
         if self.rouge_radio.isChecked():
             output = commands.getstatusoutput("airbase-ng -a %s -e '%s' -c %s %s > /tmp/access_point_log"%(mac_address,essid,channel,monitor))
@@ -740,21 +733,16 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
         else:
             output = commands.getstatusoutput("airbase-ng -a %s -z 2 -e '%s' -c %s -w %s %s > /tmp/access_point_log"%(mac_address,essid,channel,key,monitor))
 
-
-
         if output[0] > 0:
             access_point_error = output[1]
             access_point_control = 0
-            self.emit(QtCore.SIGNAL("access point error"))
-
-
-
+            self.signal.emit(QtCore.pyqtSignal("access point error"))
 
     def update_browser_thread(self):
         global access_point_control
         while access_point_control ==  1:
             time.sleep(3)
-            self.emit(QtCore.SIGNAL("access point output"))
+            self.signal.emit(QtCore.pyQtSignal("access point output"))
 
 
 
@@ -844,9 +832,9 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
         domain_ip_address = str(self.domain_ip.text())
         website_address = str(self.domain_label.text())
         if domain_ip_address.count('.') != 3:                                   # Check if inputed data is valid
-            QtGui.QMessageBox.warning(self,"Invalid IP Address","Please input a valid Fake IP address to map to website")
+            QtWidgets.QMessageBox.warning(self,"Invalid IP Address","Please input a valid Fake IP address to map to website")
         elif len(website_address) < 3:
-            QtGui.QMessageBox.warning(self,"Invalid Web Address","Please input a web address to map to IP address")
+            QtWidgets.QMessageBox.warning(self,"Invalid Web Address","Please input a web address to map to IP address")
         else:
             self.ghost_dns.mapping[website_address] = domain_ip_address
             self.dns_textbrowser.append('<font color=green>Added \'%s\' resolving as %s</font>'%(website_address,domain_ip_address))
@@ -861,11 +849,11 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
             buttons
         '''
         self.ghost_dns.interface = str(self.card_interface_combo.currentText())
-        self.connect(self.ghost_dns,QtCore.SIGNAL("new client connection"),self.update_dns_connections)
+        self.connect(self.ghost_dns,QtCore.pyQtSignal("new client connection"),self.update_dns_connections)
 
         if self.resolveall_radio.isChecked():
             if str(self.dns_ip_address.text()).count('.') != 3:                 #Check if ip address area is empty
-                QtGui.QMessageBox.warning(self,'Invalid Resolution IP Address','Please input a valid Fake IP address of which you want the dns to resolve client queries')
+                QtWidgets.QMessageBox.warning(self,'Invalid Resolution IP Address','Please input a valid Fake IP address of which you want the dns to resolve client queries')
             else:
                 fake_dns_resolution_ip = str(self.dns_ip_address.text())
                 self.ghost_dns.set_DNS_Mode("SINGLE")
@@ -878,7 +866,7 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
                 self.dns_start.setEnabled(False)
                 self.dns_stop.setEnabled(True)
                 self.ghost_dns.start()
-                self.emit(QtCore.SIGNAL("dns started"))
+                self.signal.emit(QtCore.pyqtSignal("dns started"))
 
         else:
             try:
@@ -889,9 +877,9 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
                 self.dns_start.setEnabled(False)
                 self.dns_stop.setEnabled(True)
                 self.ghost_dns.start()                  # DNS Server thread
-                self.emit(QtCore.SIGNAL("dns started"))
+                self.signal.emit(QtCore.pyqtSignal("dns started"))
             except IndexError:
-                QtGui.QMessageBox.warning(self,"Empty IP to Website address mappings","Seems you forgot to add websites and IP addresses using the (Add) button")
+                QtWidgets.QMessageBox.warning(self,"Empty IP to Website address mappings","Seems you forgot to add websites and IP addresses using the (Add) button")
                 self.domain_add_button.setFocus()
 
 
@@ -975,15 +963,15 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
         alternatedns_ip = str(self.alternatedns_ip.text())
 
         if start_ip.count('.') != 3:                                   # Check if inputed data is valid
-            QtGui.QMessageBox.warning(self,"Invalid IP Address","Please input a valid IP address on the (From:) section")
+            QtWidgets.QMessageBox.warning(self,"Invalid IP Address","Please input a valid IP address on the (From:) section")
         elif stop_ip.count('.') != 3:
-            QtGui.QMessageBox.warning(self,"Invalid IP Address","Please input a valid IP address on the (To:) section")
+            QtWidgets.QMessageBox.warning(self,"Invalid IP Address","Please input a valid IP address on the (To:) section")
         elif gateway_ip.count('.') != 3:
-            QtGui.QMessageBox.warning(self,"Invalid IP Address","Please input a valid IP address on the (Gateway Address:) section")
+            QtWidgets.QMessageBox.warning(self,"Invalid IP Address","Please input a valid IP address on the (Gateway Address:) section")
         elif fakedns_ip.count('.') != 3:
-            QtGui.QMessageBox.warning(self,"Invalid IP Address","Please input a valid IP address on the (Fake DNS IP:) section, input the address from the fake DNS")
+            QtWidgets.QMessageBox.warning(self,"Invalid IP Address","Please input a valid IP address on the (Fake DNS IP:) section, input the address from the fake DNS")
         elif alternatedns_ip.count('.') != 3:
-            QtGui.QMessageBox.warning(self,"Invalid IP Address","Please input a valid IP address on the (Alternate  DNS IP :) section, is best you input a real DNS server IP address here to fasten HTTP responce on an intranet based networks")
+            QtWidgets.QMessageBox.warning(self,"Invalid IP Address","Please input a valid IP address on the (Alternate  DNS IP :) section, is best you input a real DNS server IP address here to fasten HTTP responce on an intranet based networks")
         else:
             ghost_settings.create_settings('self.start_ip',start_ip)                   # Write settings to last_settings file
             ghost_settings.create_settings('self.stop_ip',stop_ip)
@@ -1002,7 +990,7 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
                 self.ghost_dhcp_server.conf["Pref DNS"] = fakedns_ip
                 self.ghost_dhcp_server.conf["Alt DNS"] = alternatedns_ip
 
-                thread.start_new_thread(self.thread_server,())
+                threading.Thread(self.thread_server,())
 
                 self.dhcp_status.clear()
                 self.dhcp_status.append('<font color=green>Started Ghost DHCP Server at %s </font>'%(time.ctime()))  # DHCP ran successfully
@@ -1011,9 +999,9 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
                 self.dhcp_start.setEnabled(False)
                 self.dhcp_stop.setEnabled(True)
 
-                thread.start_new_thread(self.thread_loop_lease,())
+                threading.Thread(self.thread_loop_lease,())
 
-            except Exception,dhcp_failure:
+            except Exception as dhcp_failure:
                 self.dhcp_status.append('<font color=red>%s</font>'%(dhcp_failure))  # DHCP did not run successfully
 
 
@@ -1032,7 +1020,7 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
                 break
             lease_num = len(self.ghost_dhcp_server.hostname_leased.keys())
             if(lease_num > self.lease_count):
-                self.emit(QtCore.SIGNAL("new dhcp connection"))
+                self.signal.emit(QtCore.pyqtSignal("new dhcp connection"))
                 self.lease_count += 1
             time.sleep(1)
 
@@ -1069,8 +1057,8 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
             html_folder = 'Null'
 
         self.fake_http_object = GhostHTTPServer('0.0.0.0',http_server_port,html_folder,cwd,self.form_variables[0],self.form_variables[1]) # Username/Password varaible are from the form pages
-        self.connect(self.fake_http_object,QtCore.SIGNAL("new credential"),self.new_credential)
-        self.connect(self.fake_http_object,QtCore.SIGNAL("new remote host"),self.new_host)
+        self.connect(self.fake_http_object,QtCore.pyqtSignal("new credential"),self.new_credential)
+        self.connect(self.fake_http_object,QtCore.pyqtSignal("new remote host"),self.new_host)
         os.environ["ghost_fake_http_control"] = "start"           # Control the fake http process from API (True == Start Server)
         self.fake_http_object.start()
 
@@ -1200,7 +1188,7 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
 
         if self.capture_radio.isChecked():                          # Capture Mode is enabled
             if len(str(self.lineEdit_2.text())) < 3:
-                QtGui.QMessageBox.warning(self,'Invalid URL or IP address','Please input the original url or ip address of the spoofed website')
+                QtWidgets.QMessageBox.warning(self,'Invalid URL or IP address','Please input the original url or ip address of the spoofed website')
             else:
                 self.start_http_service()
         else:
@@ -1221,7 +1209,7 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
             try:
                 http_server_port = int(self.use_port_http.text())
             except ValueError:
-                QtGui.QMessageBox.warning(self,"Invalid Port Number","Please input a valid port number on the (Run Webpage on Port :) section")
+                QtWidgets.QMessageBox.warning(self,"Invalid Port Number","Please input a valid port number on the (Run Webpage on Port :) section")
 
         if os.path.exists(cwd + '/HTTP-Webscript'):     # Create web directory if it does not exist
             shutil.rmtree(cwd + '/HTTP-Webscript')
@@ -1239,7 +1227,7 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
 
             if not web_script:
                 http_error += 1
-                QtGui.QMessageBox.warning(self,"Invalid Web-Script","Please browse and select a web-script to host from the (Select Webpage:) section")
+                QtWidgets.QMessageBox.warning(self,"Invalid Web-Script","Please browse and select a web-script to host from the (Select Webpage:) section")
             else:
                 self.status_textbrowser_http.append('<font color=green>Starting HTTP Server...</font>')
 
@@ -1269,7 +1257,7 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
 
                     self.status_textbrowser_http.append('<font color=green>Moving webscript files to Web-Server directory...</font>')
 
-                except OSError,e:
+                except OSError as e:
                     self.status_textbrowser_http.append('<font color=red>Unable to start HTTP Server: %s</font>'%(e))
                     http_error += 1
 
@@ -1289,12 +1277,12 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
                 except(urllib2.URLError):
                     self.status_textbrowser_http.append('<font color=red>Unable to fetch and clone website: network timeout</font>')
             else:
-                QtGui.QMessageBox.warning(self,"Invalid URL","Please input a valid url to the (Clone Website:) text area \n e.g http://www.foo-bar.com")
+                QtWidgets.QMessageBox.warning(self,"Invalid URL","Please input a valid url to the (Clone Website:) text area \n e.g http://www.foo-bar.com")
 
             #
             # Giving the file and Database directory run permission, else HTTP server will not submit any POST request
             #
-            os.chmod('%s/Ghost-Phisher-Database'%(cwd),0777)
+            os.chmod('%s/Ghost-Phisher-Database'%(cwd), 777)
 
         if self.ghost_dns.control_dns:
             if http_server_port == 80:
@@ -1371,7 +1359,7 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
             original_source.close()
 
 ################# HERERERERERERER######################################################################
-            thread.start_new_thread(self.HTTP_initialization,())        # Start HTTP Sever thread
+            threading.Thread(self.HTTP_initialization,())        # Start HTTP Sever thread
 
 
             if http_server_port == 80:
@@ -1410,9 +1398,9 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
         '''
         if 'Ghost-Phisher-Database' not in os.listdir(cwd):
             os.mkdir(cwd + '/Ghost-Phisher-Database')
-            os.chmod('%s/Ghost-Phisher-Database'%(cwd),0777)
+            os.chmod('%s/Ghost-Phisher-Database'%(cwd), 777)
         database_read = sqlite3.connect(cwd + '/Ghost-Phisher-Database/' + 'database.db')
-        os.chmod('%s/Ghost-Phisher-Database/database.db'%(cwd),0777)
+        os.chmod('%s/Ghost-Phisher-Database/database.db'%(cwd), 777)
         database_query = database_read.cursor()
         database_query.execute('create table if not exists credentials (website text, username text, password text)')
         database_query.execute('select * from credentials')
@@ -1440,7 +1428,7 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
         '''
         if 'Ghost-Phisher-Database' not in os.listdir(cwd):
             os.mkdir(cwd + '/Ghost-Phisher-Database')
-            os.chmod('%s/Ghost-Phisher-Database'%(cwd),0777)
+            os.chmod('%s/Ghost-Phisher-Database'%(cwd), 777)
         if 'database.db' in os.listdir(cwd + '/Ghost-Phisher-Database'):
             os.remove(cwd + '/Ghost-Phisher-Database/' + 'database.db')
 
@@ -1453,10 +1441,10 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
                 password = QtGui.QTableWidgetItem(self.credential_table.item(iterate,2))
                 self.database_commit(website.text(),username.text(),password.text())        # Save data to database
             except TypeError:
-                QtGui.QMessageBox.warning(self,'Null Field Detected','Please remove white spaces or rows with empty data')
+                QtWidgets.QMessageBox.warning(self,'Null Field Detected','Please remove white spaces or rows with empty data')
 
         try:
-            os.chmod('%s/Ghost-Phisher-Database/database.db'%(cwd),0777)
+            os.chmod('%s/Ghost-Phisher-Database/database.db'%(cwd), 777)
         except OSError:
             pass
 
@@ -1555,7 +1543,7 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
 
     def custom_windows_executable_payload(self):
         if not self.windows_exec_checkbox.isChecked():
-            QtGui.QMessageBox.warning(self,"Custom windows payload not selected","Please click on the windows checkbox to activate this option")
+            QtWidgets.QMessageBox.warning(self,"Custom windows payload not selected","Please click on the windows checkbox to activate this option")
         else:
             self.custom_windows_exec_path = str(QtGui.QFileDialog.getOpenFileName(self,"Browse Windows Executable",""))
 
@@ -1565,7 +1553,7 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
 
     def custom_linux_executable_payload(self):
         if not self.linux_exec_checkbox.isChecked():
-            QtGui.QMessageBox.warning(self,"Custom Linux payload not selected","Please click on the linux checkbox to activate this option")
+            QtWidgets.QMessageBox.warning(self,"Custom Linux payload not selected","Please click on the linux checkbox to activate this option")
         else:
             self.custom_linux_exec_path = str(QtGui.QFileDialog.getOpenFileName(self,"Browse Linux Executable",""))
 
@@ -1696,14 +1684,14 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
             else:
                 if not self.custom_page_label_2.text():
                     self.clear_all_displays()
-                    QtGui.QMessageBox.warning(self,"Invalid Custom Page Path","Please Browse and select a custom webpage to use")
+                    QtWidgets.QMessageBox.warning(self,"Invalid Custom Page Path","Please Browse and select a custom webpage to use")
                 else:
                     ghost_trap_http.control_settings['windows_webpage']  = str(self.custom_page_label_2.text())   # Use Custom Vulnerability page
                     ghost_trap_http.control_settings['linux_webpage']  = str(self.custom_page_label_2.text())
                     self.display_initialization(True)
                     self.Stage_2_process()
 
-        except Exception,exception_string:
+        except Exception as exception_string:
             self.display_information('red',"Failed to Start: " + str(exception_string))
             self.ghost_trap_stop(False)
 
@@ -1727,9 +1715,9 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
 
             self.display_information('green',"Creating Payloads...")
 
-            self.connect(self.metasploit_object,QtCore.SIGNAL("payloads created successfully"),self.Stage_3_process)   # Check if payloads were created successfully
-            self.connect(self.metasploit_object,QtCore.SIGNAL('windows payload error'),self.metasploit_windows_error)
-            self.connect(self.metasploit_object,QtCore.SIGNAL('linux payload error'),self.metasploit_linux_error)
+            self.connect(self.metasploit_object,QtCore.pyqtSignal("payloads created successfully"),self.Stage_3_process)   # Check if payloads were created successfully
+            self.connect(self.metasploit_object,QtCore.pyqtSignal('windows payload error'),self.metasploit_windows_error)
+            self.connect(self.metasploit_object,QtCore.pyqtSignal('linux payload error'),self.metasploit_linux_error)
 
             # Settings Metasploit Class variables
 
@@ -1862,7 +1850,7 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
 
         if os.environ["ghost_fake_http_control"] == "start":                            # Check if the Fake HTTP Server is running
             if str(self.ghost_trap_http_edit.text()) == str(self.use_port_http.text()):   # Check if the Fake HTTP Server and TRAP are running on same port
-                QtGui.QMessageBox.warning(self,"Duplicate port settings","Ghost Fake HTTP Server is currently running on\
+                QtWidgets.QMessageBox.warning(self,"Duplicate port settings","Ghost Fake HTTP Server is currently running on\
                 the selected port, Please change either of the port settings")
                 self.display_error_message("Stopped")
             else:
@@ -1891,14 +1879,14 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
 
 
     def connect_objects(self):
-        self.connect(self,QtCore.SIGNAL("creating cache"),self.creating_cache)
-        self.connect(self.cookie_core,QtCore.SIGNAL("New Cookie Captured"),self.display_cookie_captured)    # Notification Signal for GUI instance"))
-        self.connect(self.cookie_core,QtCore.SIGNAL("cookie buffer detected"),self.emit_led_buffer)         # Notification on new http packet
-        self.connect(self,QtCore.SIGNAL("emit buffer red light"),self.emit_buffer_red_light)
+        self.connect(self,QtCore.pyqtSignal("creating cache"),self.creating_cache)
+        self.connect(self.cookie_core,QtCore.pyqtSignal("New Cookie Captured"),self.display_cookie_captured)    # Notification Signal for GUI instance"))
+        self.connect(self.cookie_core,QtCore.pyqtSignal("cookie buffer detected"),self.emit_led_buffer)         # Notification on new http packet
+        self.connect(self,QtCore.pyqtSignal("emit buffer red light"),self.emit_buffer_red_light)
 
-        self.connect(self,QtCore.SIGNAL("on sniff red light"),self.off_sniff_red_light)         # Will bink the sniff led red for some seconds control from blink_light()
-        self.connect(self,QtCore.SIGNAL("on sniff green light"),self.on_sniff_green_light)      # Will bink the sniff led green for some seconds control from blink_light()
-        self.connect(self,QtCore.SIGNAL("Continue Sniffing"),self.start_Cookie_Attack_part)
+        self.connect(self,QtCore.pyqtSignal("on sniff red light"),self.off_sniff_red_light)         # Will bink the sniff led red for some seconds control from blink_light()
+        self.connect(self,QtCore.pyqtSignal("on sniff green light"),self.on_sniff_green_light)      # Will bink the sniff led green for some seconds control from blink_light()
+        self.connect(self,QtCore.pyqtSignal("Continue Sniffing"),self.start_Cookie_Attack_part)
 
 
 
@@ -1934,7 +1922,7 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
     def set_attack_option(self,reset = False):
         selected_card = str(self.combo_interface_2.currentText())
         if(selected_card == "Select Interface Card"):
-            QtGui.QMessageBox.warning(self,"Interface Option","Please select a valid interface card from the list of available interfaces")
+            QtWidgets.QMessageBox.warning(self,"Interface Option","Please select a valid interface card from the list of available interfaces")
             self.ethernet_mode_radio_2.setChecked(True)
             return
 
@@ -1943,7 +1931,7 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
             self.label_46.setText("Gateway IP Address / Router IP Address:")
         else:
             if(self.interface_card_info[selected_card] == "ETHERNET"):
-                QtGui.QMessageBox.warning(self,"Interface Option","The selected mode only works with WIFI enabled interface cards")
+                QtWidgets.QMessageBox.warning(self,"Interface Option","The selected mode only works with WIFI enabled interface cards")
                 self.ethernet_mode_radio_2.setChecked(True)
                 return
             if(self.interface_card_info[selected_card] == "WIFI"):
@@ -2032,8 +2020,8 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
 
             else:
                 display = '''%s is currently not on monitor mode, should a monitor interface be created using the selected interface'''%(selected_interface)
-                answer = QtGui.QMessageBox.question(self,"Enable Monitor Mode",display,QtGui.QMessageBox.Yes,QtGui.QMessageBox.No)
-                if(answer == QtGui.QMessageBox.Yes):
+                answer = QtWidgets.QMessageBox.question(self,"Enable Monitor Mode",display,QtWidgets.QMessageBox.Yes,QtWidgets.QMessageBox.No)
+                if(answer == QtWidgets.QMessageBox.Yes):
                     monitor_output = commands.getstatusoutput("airmon-ng start " + selected_interface)
 
                     if(monitor_output[0] == 0):
@@ -2102,13 +2090,13 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
                         cookie_open_file.write("\n%s:     %s" % (str(cookie),str(value)))
 
             cookie_open_file.close()
-            QtGui.QMessageBox.information(self,"Save Cookies","Successfully saved all captured cookies to:  " + selected_path)
+            QtWidgets.QMessageBox.information(self,"Save Cookies","Successfully saved all captured cookies to:  " + selected_path)
 
 
 
     def Clear_All(self):
-        answer = QtGui.QMessageBox.question(self,"Clear Captured Cookies","Are you sure you want to clear all captured cookies?",QtGui.QMessageBox.Yes,QtGui.QMessageBox.No)
-        if(answer == QtGui.QMessageBox.Yes):
+        answer = QtWidgets.QMessageBox.question(self,"Clear Captured Cookies","Are you sure you want to clear all captured cookies?",QtWidgets.QMessageBox.Yes,QtWidgets.QMessageBox.No)
+        if(answer == QtWidgets.QMessageBox.Yes):
             self.cookie_db_cursor.execute("delete from cookie_cache")
             self.cookie_db_jar.commit()
             self.cookie_core.captured_cookie_count = 0
@@ -2148,7 +2136,7 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
             str(entries[3]),str(entries[4]),str(entries[5]),
             str(entries[6]))
 
-        thread.start_new_thread(self.open_web_address,(web_address,))
+        threading.Thread(self.open_web_address,(web_address,))
 
 
 
@@ -2189,14 +2177,14 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
     # Blinks the cookie buffer light on http packet detection
     def emit_led_buffer(self):
         self.cookie_detection_led_2.setPixmap(self.green_light)
-        thread.start_new_thread(self.delay_thread,())
+        threading.Thread(self.delay_thread,())
 
     def emit_buffer_red_light(self):
         self.cookie_detection_led_2.setPixmap(self.red_light)
 
     def delay_thread(self):
         time.sleep(0.2)
-        self.emit(QtCore.SIGNAL("emit buffer red light"))
+        self.signal.emit(QtCore.pyqtSignal("emit buffer red light"))
 
 
 
@@ -2257,7 +2245,7 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
                 if(result):
                     self.mozilla_cookie_engine.cookie_database = result[0]
                     if not os.path.exists(self.mozilla_cookie_engine.cookie_database):
-                        self.emit(QtCore.SIGNAL("creating cache"))
+                        self.signal.emit(QtCore.pyqtSignal("creating cache"))
                         path = self.mozilla_cookie_engine.get_Cookie_Path("cookies.sqlite")
                         if not path:
                             raise Exception("cookies.sqlite3 firefox database has not been created on this system, Please run firefox to create")
@@ -2265,7 +2253,7 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
                         cookie_db_cursor.execute(sql_code_c % ("cookie_path",path))
                         cookie_db_jar.commit()
                 else:
-                    self.emit(QtCore.SIGNAL("creating cache"))
+                    self.signal.emit(QtCore.pyqtSignal("creating cache"))
                     path = self.mozilla_cookie_engine.get_Cookie_Path("cookies.sqlite")
                     if not path:
                         raise Exception("cookies.sqlite3 firefox database has not been created on this system, Please run firefox to create")
@@ -2288,7 +2276,7 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
     # Attack starts here on button click()
     def start_Cookie_Attack(self):
         if(self.stop_arp_poison.isEnabled()):
-            QtGui.QMessageBox.warning(self,"Routing Conflict","Please you cannot run the ARP Cache Poisoning and Session Hijacking attacks at the same time")
+            QtWidgets.QMessageBox.warning(self,"Routing Conflict","Please you cannot run the ARP Cache Poisoning and Session Hijacking attacks at the same time")
             return
 
         self.cookie_core = Cookie_Hijack_Core()                 # Cookie Capture and processing core
@@ -2304,7 +2292,7 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
 
         if(self.ethernet_mode_radio_2.isChecked()):
             if(not re.match("(\d+.){3}\d+",ip_wep_edit)):
-                QtGui.QMessageBox.warning(self,"Invalid IP Address","Please insert a valid IPv4 Address of the Default Gateway")
+                QtWidgets.QMessageBox.warning(self,"Invalid IP Address","Please insert a valid IPv4 Address of the Default Gateway")
                 self.wep_key_edit_2.setFocus()
                 return
 
@@ -2330,13 +2318,13 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
             self.cookie_core.create_cookie_cache()                      # Create Cookie Cache
             self.cookie_core.truncate_database()                        # Delete all old items from database
 
-        except Exception,message:
+        except Exception as message:
             self.display_error("Failed to create cookie database: " + str(message))
             return
 
         self.interface_selection_control_session = False
         ghost_settings.create_settings("self.wep_key_edit_2",ip_wep_edit)
-        thread.start_new_thread(self.prepare_Mozilla_Database,())       # Trucates and prepares database
+        threading.Thread(self.prepare_Mozilla_Database,())       # Trucates and prepares database
 
 
 
@@ -2344,7 +2332,7 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
     def start_Attack(self):
         self.cookies_captured_label_2.clear()
         if not self.firefox_is_installed():
-            QtGui.QMessageBox.warning(self,"Mozilla Firefox Detection",
+            QtWidgets.QMessageBox.warning(self,"Mozilla Firefox Detection",
             "Mozilla firefox is currently not installed on this computer, you need firefox to browse hijacked sessions, Process will capture cookies for manual analysis")
 
         self.treeWidget.clear()
@@ -2353,7 +2341,7 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
         self.cookie_core.control = True                                 # Start Core Thread processes
         self.cookie_core.monitor_interface = self.monitor_interface     # Holds the monitor interface e.g mon0,mon1
 
-        thread.start_new_thread(self.Led_Blink,())                      # Blinks Sniff Led for some number of seconds
+        threading.Thread(self.Led_Blink,())                      # Blinks Sniff Led for some number of seconds
         self.start_sniffing_button_3.setEnabled(False)
 
 
@@ -2368,7 +2356,7 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
             self.ethernet_mode_radio_2.setEnabled(False)
             self.passive_mode_radio_2.setEnabled(False)
 
-        except Exception,message:
+        except Exception as message:
             self.display_error(str(message))
             self.sniffing_status_led_2.setPixmap(self.red_light)
             self.cookie_detection_led_2.setPixmap(self.red_light)
@@ -2378,13 +2366,13 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
 
     def Led_Blink(self):
         for count in range(3):
-            self.emit(QtCore.SIGNAL("on sniff green light"))
+            self.signal.emit(QtCore.pyqtSignal("on sniff green light"))
             time.sleep(1)
-            self.emit(QtCore.SIGNAL("on sniff red light"))
+            self.signal.emit(QtCore.pyqtSignal("on sniff red light"))
             time.sleep(1)
-            self.emit(QtCore.SIGNAL("on sniff green light"))
+            self.signal.emit(QtCore.pyqtSignal("on sniff green light"))
 
-        self.emit(QtCore.SIGNAL("Continue Sniffing"))
+        self.signal.emit(QtCore.pyqtSignal("Continue Sniffing"))
         return
 
 
@@ -2478,11 +2466,11 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
         self.arp_poison_browser.clear()
 
         if(self.stop_sniffing_button_3.isEnabled()):
-            QtGui.QMessageBox.warning(self,"Routing Conflict","Please you cannot run the Session Hijacking and ARP Cache Poisoning attacks at the same time")
+            QtWidgets.QMessageBox.warning(self,"Routing Conflict","Please you cannot run the Session Hijacking and ARP Cache Poisoning attacks at the same time")
             return
 
         if(not re.match("(\d+.){3}\d+",target_address)):
-            QtGui.QMessageBox.warning(self,"Invalid IP Address","Please insert a valid IPv4 Address of the Default Gateway")
+            QtWidgets.QMessageBox.warning(self,"Invalid IP Address","Please insert a valid IPv4 Address of the Default Gateway")
             self.wep_key_edit_3.setFocus()
             return
 
@@ -2517,7 +2505,7 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
         self.arp_poison_browser.append("<font color=green><b>%s</b></font>"%("-" * 50))
 
         self.interface_selection_control = False
-        thread.start_new_thread(self.Check_New_Arp_Victim,())
+        threading.Thread(self.Check_New_Arp_Victim,())
 
 
 
@@ -2526,7 +2514,7 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
         while(self.arp_attack.control == True):
             arp_victim_count = len(self.arp_attack.subnet_hosts.keys())
             if(arp_victim_count > arp_number):
-                self.emit(QtCore.SIGNAL("New ARP Victim"))
+                self.signal.emit(QtCore.pyqtSignal("New ARP Victim"))
                 arp_number = arp_victim_count
 
             time.sleep(1)
@@ -2566,8 +2554,8 @@ iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port
             user exits application
         '''
         global http_terminal
-        answer = QtGui.QMessageBox.question(self,"Ghost Phisher","Are you sure you want to quit?",QtGui.QMessageBox.Yes,QtGui.QMessageBox.No)
-        if answer == QtGui.QMessageBox.Yes:
+        answer = QtWidgets.QMessageBox.question(self,"Ghost Phisher","Are you sure you want to quit?",QtWidgets.QMessageBox.Yes,QtWidgets.QMessageBox.No)
+        if answer == QtWidgets.QMessageBox.Yes:
 
             if(self.stop_sniffing_button_3.isEnabled()):
                 typedef = type(self.cookie_db_jar).__name__

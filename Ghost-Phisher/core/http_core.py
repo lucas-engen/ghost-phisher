@@ -2,7 +2,7 @@ import os
 
 from bottle import (Bottle,request,redirect,static_file,run)                 # Bottle Framework - a multiple http server framework like django but smaller
 
-from PyQt4 import QtCore
+from PyQt5 import QtCore
 
 server = Bottle()
 
